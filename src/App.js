@@ -23,7 +23,8 @@ class Knapsack extends React.Component {
         { id: 6, origin: 4, dest: 3 , weight:-1},
         { id: 7, origin: 5, dest: 4 , weight:1},
         { id: 7, origin: 4, dest: 1 , weight:-4}
-      ]
+      ],
+			distinctNodes: new Set()
     };
   }
 
@@ -32,6 +33,7 @@ class Knapsack extends React.Component {
     let origin = parseInt(this.state.origin);
     let dest = parseInt(this.state.dest);
     let weight = parseInt(this.state.weight);
+		
     nodes.push({
       id: this.state.nodes.length + 1,
       origin: origin,
@@ -52,7 +54,25 @@ class Knapsack extends React.Component {
     this.setState({ showDP: true });
   }
 
+	getNodes() {
+		var distinctNodes = [] 
+		for(let i = 0; i < this.state.nodes.length; i++){
+			let o = this.state.nodes[i].origin	
+			let d = this.state.nodes[i].dest
+			console.log(o,d)
+			if(distinctNodes.indexOf(o) < 0){
+				distinctNodes.push(o)
+			}
+			if(distinctNodes.indexOf(d) < 0){
+				distinctNodes.push(d)
+			}
+		}
+		return distinctNodes	
+	}
+
+
   mountTableHeader() {
+
     return (
       <Table.Row>
         <Table.HeaderCell />
@@ -71,7 +91,7 @@ class Knapsack extends React.Component {
     return this.state.items.map((i, ix) => {
       return (
         <Table.Row>
-          <Table.Cell width={1}>Item {ix + 1}</Table.Cell>
+          <Table.Cell width={1}>Iteração {ix}</Table.Cell>
           {CostTable[ix].map((j, jx) => {
             return (ix === this.state.items.length - 1 && jx === this.state.weightLimit) ? <Table.Cell style={{backgroundColor: "#8ce885"}}>{j}</Table.Cell> : <Table.Cell>{j}</Table.Cell>
           })}
