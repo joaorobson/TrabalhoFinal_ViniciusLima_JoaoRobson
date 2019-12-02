@@ -10,12 +10,14 @@ import {
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 
+const Inf = 1000000;
+
 class Knapsack extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       nodes: [
-				{ id: 1, origin: 0, dest: 5, weight:8 },
+        { id: 1, origin: 0, dest: 5, weight:8 },
         { id: 2, origin: 0, dest: 1 , weight:10},
         { id: 3, origin: 1, dest: 3 , weight:2},
         { id: 4, origin: 2, dest: 1, weight:1},
@@ -54,21 +56,20 @@ class Knapsack extends React.Component {
     this.setState({ showDP: true });
   }
 
-	getNodes() {
-		var distinctNodes = [] 
-		for(let i = 0; i < this.state.nodes.length; i++){
-			let o = this.state.nodes[i].origin	
-			let d = this.state.nodes[i].dest
-			console.log(o,d)
-			if(distinctNodes.indexOf(o) < 0){
-				distinctNodes.push(o)
-			}
-			if(distinctNodes.indexOf(d) < 0){
-				distinctNodes.push(d)
-			}
-		}
-		return distinctNodes	
-	}
+  getNodes() {
+      var distinctNodes = [] 
+      for(let i = 0; i < this.state.nodes.length; i++){
+          let o = this.state.nodes[i].origin	
+          let d = this.state.nodes[i].dest
+          if(distinctNodes.indexOf(o) < 0){
+              distinctNodes.push(o)
+          }
+          if(distinctNodes.indexOf(d) < 0){
+              distinctNodes.push(d)
+          }
+      }
+      return distinctNodes	
+  }
 
 
   mountTableHeader() {
@@ -76,7 +77,7 @@ class Knapsack extends React.Component {
     return (
       <Table.Row>
         <Table.HeaderCell />
-        {[...Array(this.state.weightLimit + 1).keys()].map(v => {
+        {[...Array(this.getNodes().length).keys()].map(v => {
           return <Table.HeaderCell>{v}</Table.HeaderCell>;
         })}
       </Table.Row>
@@ -84,44 +85,55 @@ class Knapsack extends React.Component {
   }
 
   mountRows() {
-    var weightList = this.state.items.map((x) => x['mass']);
-    var valueList = this.state.items.map((x) => x['value']);
-    var CostTable = this.dynamicKnapsack(this.state.weightLimit, this.state.items.length, weightList, valueList);
+    var CostTable = this.bellmanFord(0);
 
-    return this.state.items.map((i, ix) => {
+    if(CostTable.length === 0){
+      return <h2>Grafo com ciclo negativo</h2>
+    }
+    return this.getNodes().map((i, ix) => {
       return (
         <Table.Row>
           <Table.Cell width={1}>Iteração {ix}</Table.Cell>
           {CostTable[ix].map((j, jx) => {
-            return (ix === this.state.items.length - 1 && jx === this.state.weightLimit) ? <Table.Cell style={{backgroundColor: "#8ce885"}}>{j}</Table.Cell> : <Table.Cell>{j}</Table.Cell>
+            return (ix === this.getNodes().length - 1) ? <Table.Cell style={{backgroundColor: "#8ce885"}}>{j}</Table.Cell> : <Table.Cell>{j}</Table.Cell>
           })}
         </Table.Row>
       );
     });
   }
 
-  dynamicKnapsack(total_weight, item_count, Weight, Benefit){
-    let CostTable = []
+  bellmanFord(src){
+    var CostTable = []
+    var dist = [];
 
-    for(var i=0; i < Weight.length; i++){
-      CostTable.push(Array(total_weight + 1).fill(0));
+    for(var i=0; i < this.getNodes().length; i++){
+      dist.push(Inf);
     }
+    dist[src] = 0
 
-    for(i = 0; i < item_count; ++i){
-      CostTable[i][0] = 0;
-
-      for(var w = 0; w <= total_weight; ++w){
-        if(i === 0){
-          if(w >= Weight[i]){
-            CostTable[i][w] = Benefit[i];
-          }
-        } else if(Weight[i] <= w){
-            CostTable[i][w] = Math.max(Benefit[i] + CostTable[i-1][w - Weight[i]], CostTable[i-1][w])
-        } else{
-            CostTable[i][w] = CostTable[i-1][w]
+    for(i = 0; i < this.getNodes().length; i++){
+      CostTable.push(dist.slice());
+      for(let a = 0; a < this.state.nodes.length; a++){
+        let u = this.state.nodes[a]["origin"];
+        let v = this.state.nodes[a]["dest"];
+        let w = this.state.nodes[a]["weight"];
+        if(dist[u] !== Inf && (dist[u] + w) < dist[v]){
+          dist[v] = dist[u] + w;
         }
       }
     }
+
+    for(let a = 0; a < this.state.nodes.length; a++){
+      let u = this.state.nodes[a]["origin"];
+      let v = this.state.nodes[a]["dest"];
+      let w = this.state.nodes[a]["weight"];
+      if(dist[u] !== Inf && (dist[u] + w) < dist[v]){
+        alert("Grafo contém ciclo negativo!");
+        return [];
+      }
+    }
+
+
     return CostTable;
   }
 
@@ -188,7 +200,7 @@ class Knapsack extends React.Component {
   render() {
     return (
       <Grid columns="equal" style={{ margin: "40px" }}>
-        <Header>Knapsack</Header>
+        <Header>Bellman Ford</Header>
         <Grid.Row>
           <Grid.Column>
             <Form>
