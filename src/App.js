@@ -15,16 +15,25 @@ class Knapsack extends React.Component {
     super(props);
     this.state = {
       nodes: [
+				{ id: 1, origin: 0, dest: 5, weight:8 },
+        { id: 2, origin: 0, dest: 1 , weight:10},
+        { id: 3, origin: 1, dest: 3 , weight:2},
+        { id: 4, origin: 2, dest: 1, weight:1},
+        { id: 5, origin: 3, dest: 2 , weight:-2},
+        { id: 6, origin: 4, dest: 3 , weight:-1},
+        { id: 7, origin: 5, dest: 4 , weight:1},
+        { id: 7, origin: 4, dest: 1 , weight:-4}
       ]
     };
   }
 
-  addNodes() {
+  addNode() {
     let nodes = this.state.nodes;
     let origin = parseInt(this.state.origin);
     let dest = parseInt(this.state.dest);
     let weight = parseInt(this.state.weight);
     nodes.push({
+      id: this.state.nodes.length + 1,
       origin: origin,
       dest: dest,
 			weight: weight 
@@ -35,7 +44,7 @@ class Knapsack extends React.Component {
 
   removeItem(id) {
     this.setState(prevState => ({
-      items: prevState.items.filter(el => el.id !== id)
+      nodes: prevState.nodes.filter(el => el.id !== id)
     }));
   }
 
@@ -106,10 +115,10 @@ class Knapsack extends React.Component {
     );
   }
 
-  itemsList() {
+  nodesList() {
     return (
       <List celled ordered>
-        {this.state.items.map(item => (
+        {this.state.nodes.map(item => (
           <List.Item>
             <Button
               onClick={() => this.removeItem(item.id)}
@@ -120,29 +129,19 @@ class Knapsack extends React.Component {
             </Button>
             <List.Content>
               <List.Description>
-                <b>Massa:</b> {item.mass}
+                <b>Origem:</b> {item.origin}
               </List.Description>
               <List.Description>
-                <b>Valor:</b> {item.value}
+                <b>Destino:</b> {item.dest}
+              </List.Description>
+              <List.Description>
+                <b>Peso:</b> {item.weight}
               </List.Description>
             </List.Content>
           </List.Item>
         ))}
       </List>
     );
-  }
-
-  getWeightLimit() {
-    if (!this.state.weightLimit) {
-      let minMass = Math.min.apply(
-        Math,
-        this.state.items.map(o => o.mass)
-      );
-      this.setState({ weightLimit: minMass });
-    }
-    let minMass = this.state.weightLimit;
-
-    return minMass;
   }
 
   handleChange = (e, { name, value }) => this.setState({ [name]: value });
@@ -194,7 +193,6 @@ class Knapsack extends React.Component {
                   name="weight"
                   onChange={this.handleChange}
                   type="number"
-                  min="0"
                   fluid
                   placeholder="Insira um peso"
                 />
@@ -209,8 +207,7 @@ class Knapsack extends React.Component {
             </Form>
           </Grid.Column>
           <Grid.Column>
-            <p>Limite de peso: {this.getWeightLimit()}</p>
-            {this.itemsList()}
+            {this.nodesList()}
           </Grid.Column>
           <Button style={{ height: "114px" }} onClick={() => this.generateDP()}>
             Mostrar DP
